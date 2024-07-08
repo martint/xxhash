@@ -39,7 +39,7 @@ import static org.weakref.xxh.Util.readLong;
 
 class LongHashVector128
 {
-    private static final VectorShuffle<Byte> BYTE_SHUFFLE = VectorShuffle.fromValues(ByteVector.SPECIES_128, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7); // TODO
+    private static final VectorShuffle<Byte> BYTE_SHUFFLE = VectorShuffle.fromValues(ByteVector.SPECIES_128, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
 
     public static long hash(byte[] input, int offset, int length)
     {
