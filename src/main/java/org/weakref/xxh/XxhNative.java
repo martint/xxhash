@@ -20,6 +20,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
+import java.nio.file.Path;
 
 public class XxhNative
 {
@@ -27,7 +28,13 @@ public class XxhNative
     private final static MethodHandle XXH3;
 
     static {
-        SymbolLookup lookup = SymbolLookup.libraryLookup("libxxhash.0.8.3.dylib", Arena.ofAuto());
+        String library = switch (platform()) {
+            case "linux-amd64" -> "libxxhash.so";
+            case "macos-aarch64" -> "libxxhash.dylib";
+            default -> throw new UnsupportedOperationException("Unsupported platform: " + platform());
+        };
+
+        SymbolLookup lookup = SymbolLookup.libraryLookup(Path.of(".", library), Arena.ofAuto());
 
         // XXH_PUBLIC_API XXH64_hash_t XXH64(const void* input, size_t length, unsigned long long seed);
         XXH64 = lookup.find("XXH64")
@@ -47,6 +54,21 @@ public class XxhNative
                                 FunctionDescriptor.of(ValueLayout.JAVA_LONG, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG),
                                 Linker.Option.critical(true)))
                 .get();
+    }
+
+    private static String platform()
+    {
+        String name = System.getProperty("os.name");
+        name = switch (name) {
+            case "Linux" -> "linux";
+            case "Mac OS X" -> "macos";
+            default -> throw new LinkageError("Unsupported OS platform: " + name);
+        };
+        String arch = System.getProperty("os.arch");
+        if ("x86_64".equals(arch)) {
+            arch = "amd64";
+        }
+        return (name + "-" + arch).replace(' ', '_');
     }
 
     public static long xxh64(MemorySegment data)
