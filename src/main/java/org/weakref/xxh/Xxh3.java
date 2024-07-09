@@ -36,7 +36,9 @@ public class Xxh3
         try {
 //            HASH_LONG = MethodHandles.lookup().findStatic(LongHashScalar.class, "hash", MethodType.methodType(long.class, byte[].class, int.class, int.class));
 //            HASH_LONG = MethodHandles.lookup().findStatic(LongHashUnrolled.class, "hash", MethodType.methodType(long.class, byte[].class, int.class, int.class));
-            HASH_LONG = MethodHandles.lookup().findStatic(LongHashVector128.class, "hash", MethodType.methodType(long.class, byte[].class, int.class, int.class));
+//            HASH_LONG = MethodHandles.lookup().findStatic(LongHashVector128.class, "hash", MethodType.methodType(long.class, byte[].class, int.class, int.class));
+            HASH_LONG = MethodHandles.lookup().findStatic(LongHashVector256.class, "hash", MethodType.methodType(long.class, byte[].class, int.class, int.class));
+//            HASH_LONG = MethodHandles.lookup().findStatic(LongHashVector512.class, "hash", MethodType.methodType(long.class, byte[].class, int.class, int.class));
         }
         catch (NoSuchMethodException | IllegalAccessException e) {
             throw new AssertionError(e);
