@@ -17,7 +17,7 @@ import jdk.incubator.vector.ByteVector;
 import jdk.incubator.vector.LongVector;
 import jdk.incubator.vector.VectorShuffle;
 
-import static jdk.incubator.vector.LongVector.SPECIES_128;
+import static jdk.incubator.vector.LongVector.SPECIES_PREFERRED;
 import static jdk.incubator.vector.VectorOperators.LSHR;
 import static jdk.incubator.vector.VectorOperators.XOR;
 import static org.weakref.xxh.Constants.PRIME32_1;
@@ -37,9 +37,9 @@ import static org.weakref.xxh.Util.avalanche;
 import static org.weakref.xxh.Util.mix;
 import static org.weakref.xxh.Util.readLong;
 
-class LongHashVector128
+class LongHashVector
 {
-    private static final VectorShuffle<Byte> BYTE_SHUFFLE = VectorShuffle.fromValues(ByteVector.SPECIES_128, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
+    private static final VectorShuffle<Byte> BYTE_SHUFFLE = VectorShuffle.fromOp(ByteVector.SPECIES_PREFERRED, i -> (i / 8 ^ 1) * 8 + i % 8);
 
     public static long hash(byte[] input, int offset, int length)
     {
@@ -69,10 +69,10 @@ class LongHashVector128
 
     static void accumulate(long[] accumulators, byte[] input, int offset, int secretOffset)
     {
-        for (int i = 0; i < SPECIES_128.loopBound(accumulators.length); i += SPECIES_128.length()) {
-            LongVector accumulatorsVector = LongVector.fromArray(SPECIES_128, accumulators, i);
-            ByteVector inputVector = ByteVector.fromArray(ByteVector.SPECIES_128, input, offset + i * 8);
-            ByteVector secretVector = ByteVector.fromArray(ByteVector.SPECIES_128, SECRET, secretOffset + i * 8);
+        for (int i = 0; i < SPECIES_PREFERRED.loopBound(accumulators.length); i += SPECIES_PREFERRED.length()) {
+            LongVector accumulatorsVector = LongVector.fromArray(SPECIES_PREFERRED, accumulators, i);
+            ByteVector inputVector = ByteVector.fromArray(ByteVector.SPECIES_PREFERRED, input, offset + i * 8);
+            ByteVector secretVector = ByteVector.fromArray(ByteVector.SPECIES_PREFERRED, SECRET, secretOffset + i * 8);
 
             LongVector key = inputVector
                     .lanewise(XOR, secretVector)
@@ -95,9 +95,9 @@ class LongHashVector128
 
     private static void scramble(long[] accumulators)
     {
-        for (int i = 0; i < SPECIES_128.loopBound(accumulators.length); i += SPECIES_128.length()) {
-            LongVector vector = LongVector.fromArray(SPECIES_128, accumulators, i);
-            LongVector secret = ByteVector.fromArray(ByteVector.SPECIES_128, SECRET, (SECRET.length - STRIPE_LENGTH) + (i * 8)).reinterpretAsLongs();
+        for (int i = 0; i < SPECIES_PREFERRED.loopBound(accumulators.length); i += SPECIES_PREFERRED.length()) {
+            LongVector vector = LongVector.fromArray(SPECIES_PREFERRED, accumulators, i);
+            LongVector secret = ByteVector.fromArray(ByteVector.SPECIES_PREFERRED, SECRET, (SECRET.length - STRIPE_LENGTH) + (i * 8)).reinterpretAsLongs();
 
             vector.lanewise(XOR, vector.lanewise(LSHR, 47))
                     .lanewise(XOR, secret)
